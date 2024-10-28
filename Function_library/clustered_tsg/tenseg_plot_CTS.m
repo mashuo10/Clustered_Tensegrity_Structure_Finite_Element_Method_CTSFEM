@@ -34,7 +34,7 @@ NodeSize = 12; % Size of node marker
 
 %% Labeling options
 % Write labels? (1: show, 0: suppress)
-LabelNodes = 0;
+LabelNodes = 1;
 LabelEle=0;
 Color_CTS=0;   % 1 color by clustered info, 0 color by lb_ele
 Label_colorbar=1;  % 1 colorbar, 2 legned, 0 nothing,
