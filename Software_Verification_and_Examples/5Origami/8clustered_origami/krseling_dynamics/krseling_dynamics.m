@@ -341,7 +341,7 @@ ind_w=[];w=[];
 ind_dl0_c=[n_b+1:ne]; dl0_c=-0.8*l0_c(ind_dl0_c)';
 ind_theta_0=[]; dtheta_0=[];        % initial angel change with time
 
-[w_t,l0_ct,theta_0_t]=tenseg_load_prestress_CTS_ORI(tspan,ind_w,w,'ramp',ind_dl0_c,dl0_c,l0_c,ind_theta_0,dtheta_0,theta_0,gravity,[0;0;9.8],C,M_p);
+[w_t,l0_ct,theta_0_t]=tenseg_load_prestress_CTS_ORI(tspan,ind_w,w,'ramp',ind_dl0_c,dl0_c,l0_c,ind_theta_0,dtheta_0,theta_0,gravity,[0;0;9.8],C,M_p,p);
 
 % w_t=[w_t,w_t(:,end)*ones(1,numel(tspan)-numel(tspan1))];   % second half no change of boundary info
 % l0_ct=[l0_ct,l0_ct(:,end)*ones(1,numel(tspan)-numel(tspan1))];

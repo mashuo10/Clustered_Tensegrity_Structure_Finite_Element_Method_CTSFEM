@@ -16,7 +16,7 @@ figure
 for i=1:size(data,1)
 %      n='rb';
 %      plot(out_tspan,data(i,:),n(1,i),'linewidth',1);hold on
-       plot(out_tspan,data(i,:),'-.o','linewidth',2);hold on
+       plot(out_tspan,data(i,:),'-','linewidth',2);hold on
 end
 % plot(out_tspan,data,'linewidth',2);
 set(gca,'fontsize',18,'linewidth',1.15);

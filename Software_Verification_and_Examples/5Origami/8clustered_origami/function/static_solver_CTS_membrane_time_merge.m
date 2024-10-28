@@ -147,12 +147,17 @@ for k=1:substep
     E1_end=[E1_end;E1];
 
     end
-
-    T1=D*E1_end;
-
     toc
     time_a=sum(toc);
 
+    T1=D*E1_end;
+
+
+        T1_x=T1(1:3:end,:);
+        T1_y=T1(2:3:end,:);
+        T1_xy=T1(3:3:end,:);
+        
+        T1_mises=sqrt(diag(T1_x*T1_x')+diag(T1_y*T1_y')-diag(T1_x*T1_y')+3*diag(T1_xy*T1_xy'));  %mises应力
 %     disp(k);
 %     X=[Ia';Ib']\[Xa;Xb];
 % 
@@ -315,7 +320,16 @@ for k=1:substep
         time_b=sum(toc);
 
         sigma_l=D*epsilon;
-%         e=cputime-t;
+
+        sigma_x=sigma_l(1:3:end,:);
+        sigma_y=sigma_l(2:3:end,:);
+         tau_xy=sigma_l(3:3:end,:);
+        
+        sigma_mises=sqrt(diag(sigma_x*sigma_x')+diag(sigma_y*sigma_y')-diag(sigma_x*sigma_y')+3*diag(tau_xy*tau_xy'));  %mises应力
+
+
+        difference=abs(T1_mises-sigma_mises)./T1_mises;
+
 
     data_out.N_a_out{k}=reshape(X_a,3,[]);
     data_out.N_b_out{k}=reshape(X_b,3,[]);
@@ -324,7 +338,7 @@ for k=1:substep
     data_out.n_b_out(:,k)=X_b;
     data_out.time_a(:,k)=time_a;
     data_out.time_b(:,k)=time_b;
-   
+    data_out.difference(:,k)=difference; %差值
      
 
     %     data_out.l_out(:,k)=l;
