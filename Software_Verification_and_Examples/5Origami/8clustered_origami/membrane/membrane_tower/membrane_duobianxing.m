@@ -47,13 +47,14 @@ period=0.5;             %period of seismic
 %% N C of the structure
 % Manually specify node positions of double layer prism.
 % N=[0 0 0;1 1 0;2 0 0;1 -1 0]';
-alpha=0;beta=0;gamma=0;         %对应x,y,z轴的角度
+alpha=0;beta=0;gamma=0;         %对应z,y,x轴的角度
 R=[cos(alpha)*cos(beta),cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma),cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma);
    sin(alpha)*cos(beta),sin(alpha)*sin(beta)*sin(gamma)+cos(alpha)*cos(gamma),sin(alpha)*sin(beta)*cos(gamma)-cos(alpha)*sin(gamma);
    -sin(beta),cos(beta)*sin(gamma),cos(beta)*cos(gamma)];   %转换矩阵
+P_org=[0;0;0];  %局部坐标到整体坐标的距离
 width=0.1;
 % N=width*[2,1,3,0,2,4;0,sqrt(3),sqrt(3),0,0,0;0,0,0,0,0.05,0];       %nodal coordinate
-r=10; h=30; p=5; f=4;       % radius; height; number of edge;三角形边长划分数量
+r=2/3; h=0; p=4; f=5;       % radius; height; number of edge;三角形边长划分数量
 
 beta=180*(0.5-1/p); 	% rotation angle
 for i=1:p               % nodal coordinate matrix N
@@ -71,8 +72,14 @@ Y=unique(X','rows','stable');
 N=Y';       %去掉重复的节点
 
 
-%自动选取对应节点连接panel lines      
-C_l_in=[];
+%自动选取对应节点连接panel lines  
+if f==3
+C_l_in=[1,5;5,7;7,1;5,2;2,6;6,5;7,6;6,3;3,7;7,9;9,1;3,8;8,7;9,8;8,4;4,9];
+
+elseif f==5
+C_l_in=[1,12;12,16;16,1;12,5;5,6;6,12;16,6;6,7;7,16;5,8;8,9;9,5;6,9;9,10;10,6;7,10;10,11;11,7;8,2;2,13;13,8;9,13;13,14;14,9;10,14;14,15;15,10;11,15;15,3;3,11;
+    16,25;25,1;7,17;17,16;25,17;17,18;18,25;11,19;19,7;17,19;19,20;20,17;18,20;20,21;21,18;3,22;22,11;19,22;22,23;23,19;20,23;23,24;24,20;21,24;24,4;4,21];
+end
 % for i=1:(f-1)
 %     C_l_in_j=zeros(3*i,2); 
 %     for j=1:i 
@@ -112,22 +119,28 @@ tenseg_plot_membrane(N,C_b,C_s,C_l);
 
 %% connectivity of triangle element Ca
 % Ca can be written in a function!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Ca=[];
-for i=1:(f-1)
-    Ca_i=zeros(3,1+2*(i-1));
-    Ca_i(1,:)=floor(linspace(4+(1+(i-1))*(i-1)/2,4+(1+(i-1))*(i-1)/2+(i-1),1+2*(i-1))); %先确定两个端点然后中间的数向下取整
-    Ca_i(2,:)=ceil(linspace(4+(1+i)*i/2,4+(1+i)*i/2+(i-1),1+2*(i-1)));                  %先确定两个端点然后中间的数向上取整
-    Ca_i(3,1:2:end)=Ca_i(2,1:2:end)+1;      %选取第三行的奇数列，用第二行的奇数列+1赋值
-    Ca_i(3,2:2:end)=Ca_i(2,2:2:end)-i;      %选取第三行的偶数列，用第二行的偶数列+i赋值
-    Ca=[Ca,Ca_i];
+if f==3
+Ca=[1,5,5,7,1,7,7,9;5,2,6,6,7,3,8,8;7,6,7,3,9,8,9,4];
+elseif f==5
+Ca=[1,12,12,16,5,5,6,6,7,8,8,9,9,10,10,11,1,16,16,25,7,7,17,17,18,11,11,19,19,20,20,21;
+    12,5,6,6,8,9,9,10,10,2,13,13,14,14,15,15,16,7,17,17,11,19,19,20,20,3,22,22,23,23,24,24;
+    16,6,16,7,9,6,10,7,11,13,9,14,10,15,11,3,25,17,25,18,19,17,20,18,21,22,19,23,20,24,21,4];
 end
-
-Ca(Ca==5)=1;    %1是一个不会出现的数，只是用来替换
-Ca(Ca==(4+(1+(f-1))*(f-1)/2))=5;      %将5,6列与底部两个调换
-Ca(Ca==1)=(4+(1+(f-1))*(f-1)/2);        
-Ca(Ca==6)=2;    %2是一个不会出现的数，只是用来替换
-Ca(Ca==(3+(1+f)*f/2))=6;              %将5,6列与底部两个调换
-Ca(Ca==2)=(3+(1+f)*f/2);
+% for i=1:(f-1)
+%     Ca_i=zeros(3,1+2*(i-1));
+%     Ca_i(1,:)=floor(linspace(4+(1+(i-1))*(i-1)/2,4+(1+(i-1))*(i-1)/2+(i-1),1+2*(i-1))); %先确定两个端点然后中间的数向下取整
+%     Ca_i(2,:)=ceil(linspace(4+(1+i)*i/2,4+(1+i)*i/2+(i-1),1+2*(i-1)));                  %先确定两个端点然后中间的数向上取整
+%     Ca_i(3,1:2:end)=Ca_i(2,1:2:end)+1;      %选取第三行的奇数列，用第二行的奇数列+1赋值
+%     Ca_i(3,2:2:end)=Ca_i(2,2:2:end)-i;      %选取第三行的偶数列，用第二行的偶数列+i赋值
+%     Ca=[Ca,Ca_i];
+% end
+% 
+% Ca(Ca==5)=1;    %1是一个不会出现的数，只是用来替换
+% Ca(Ca==(4+(1+(f-1))*(f-1)/2))=5;      %将5,6列与底部两个调换
+% Ca(Ca==1)=(4+(1+(f-1))*(f-1)/2);        
+% Ca(Ca==6)=2;    %2是一个不会出现的数，只是用来替换
+% Ca(Ca==(3+(1+f)*f/2))=6;              %将5,6列与底部两个调换
+% Ca(Ca==2)=(3+(1+f)*f/2);
 
 % Ca=generate_Ca(C_in,N);
 % Ca=zeros(3,1)
@@ -135,28 +148,35 @@ Ca(Ca==2)=(3+(1+f)*f/2);
 
 % plot the origami configuration
 tenseg_plot_ori_membrane(N,C_b,C_s,C_l,[],[],[],[],[],[],[],Ca);
+axis off;
 %% Boundary constraints
- pinned_X=[1,2,3]'; pinned_Y=[1,2,3]'; pinned_Z=[1,2,3]';
+ pinned_X=[2,4]'; pinned_Y=[2,4]'; pinned_Z=[2,4]';
+
 [Ia,Ib,a,b]=tenseg_boundary(pinned_X,pinned_Y,pinned_Z,nn);
 %% C_pl_bar
  C_pl=zeros(np,3);  %Cpl
- C_pl=[];
-for i=1:(f-1)
-    C_pl_i=zeros(1+2*(i-1),3);
-    C_pl_i(1,:)=[1+3*(1+(i-1))*(i-1)/2,2+3*(1+(i-1))*(i-1)/2,3+3*(1+(i-1))*(i-1)/2]; %先确定矩阵的第一行
-    for j=1:(i-1)
-    C_pl_i(2*j,1)=C_pl_i(2*j-1,1)-(2+3*(i-2));  %偶数行的第一项的等于奇数行减去(2+3*(i-2))
-    C_pl_i(2*j,2:3)=C_pl_i(2*j-1,2:3)+1;        %偶数行的第二三项的等于奇数行加1
-    C_pl_i(2*j+1,1)=C_pl_i(2*j,1)+(2+3*(i-1));  %奇数行的第一项的等于偶数行加上(2+3*(i-1))
-    C_pl_i(2*j+1,2:3)=C_pl_i(2*j,2:3)+2;        %奇数行的第二三项的等于偶数行加2
-    end
-    C_pl=[C_pl;C_pl_i];
-end
+ if f==3
+ C_pl=[1,2,3;4,5,6;2,6,7;7,8,9;3,10,11;9,12,13;10,13,14;14,15,16];
+ elseif f==5
+ C_pl=[1,2,3;4,5,6;2,6,7;7,8,9;10,11,12;5,12,13;13,14,15;8,15,16;16,17,18;19,20,21;11,21,22;22,23,24;14,24,25;25,26,27;17,27,28;28,29,30;
+     3,31,32;9,33,34;31,34,35;35,36,37;18,38,39;33,39,40;40,41,42;36,42,43;43,44,45;30,46,47;38,47,48;48,49,50;41,50,51;51,52,53;44,53,54;54,55,56];
+ end
+% for i=1:(f-1)
+%     C_pl_i=zeros(1+2*(i-1),3);
+%     C_pl_i(1,:)=[1+3*(1+(i-1))*(i-1)/2,2+3*(1+(i-1))*(i-1)/2,3+3*(1+(i-1))*(i-1)/2]; %先确定矩阵的第一行
+%     for j=1:(i-1)
+%     C_pl_i(2*j,1)=C_pl_i(2*j-1,1)-(2+3*(i-2));  %偶数行的第一项的等于奇数行减去(2+3*(i-2))
+%     C_pl_i(2*j,2:3)=C_pl_i(2*j-1,2:3)+1;        %偶数行的第二三项的等于奇数行加1
+%     C_pl_i(2*j+1,1)=C_pl_i(2*j,1)+(2+3*(i-1));  %奇数行的第一项的等于偶数行加上(2+3*(i-1))
+%     C_pl_i(2*j+1,2:3)=C_pl_i(2*j,2:3)+2;        %奇数行的第二三项的等于偶数行加2
+%     end
+%     C_pl=[C_pl;C_pl_i];
+% end
  [C_pl_bar,C_pl_bar_i]=tenseg_ind2C_bar(C_pl,C_l,Ca);
 
 %%  不考虑节点顺序的连接关系矩阵
 C_pn=Ca';
-[C_pn_bar,n_pn_i,C_pn_i]=tenseg_ind2C_membrane(C_pn,N); 
+[ C_pn_bar,n_pn_i, n_pn_i_local,C_pn_i] = tenseg_ind2C_membrane( C_pn,N,R,P_org );
 % [C_pn_bar,n_pn_i,C_pn_i]=tenseg_ind2C_membrane(Ca,N);  
 
 %% 板的质量
@@ -185,11 +205,11 @@ S_tc=Gp_tc';                      % clustering matrix as group matrix(for truss)
 for i=1:np
 A_2p_i{i}=kron(R',eye(3))*kron(cell2mat(C_pn_i(i)),eye(3))*A_2l*cell2mat(C_pl_bar_i(i))';
 B_lp_i{i}=A_2p_i{i}';
-B_epsilon_i{i}=[cell2mat(B_lp_i(i))*kron(eye(3),[1,0,0;0,0,0;0,0,0])*cell2mat(n_pn_i(i)),cell2mat(B_lp_i(i))*kron(eye(3),[0,0,0;0,1,0;0,0,0])*cell2mat(n_pn_i(i)),cell2mat(B_lp_i(i))*kron(eye(3),[0,0,0;1,0,0;0,0,0])*cell2mat(n_pn_i(i))];
+B_epsilon_i{i}=[cell2mat(B_lp_i(i))*kron(eye(3),[1,0,0;0,0,0;0,0,0])*cell2mat(n_pn_i_local(i)),cell2mat(B_lp_i(i))*kron(eye(3),[0,0,0;0,1,0;0,0,0])*cell2mat(n_pn_i_local(i)),cell2mat(B_lp_i(i))*kron(eye(3),[0,0,0;1,0,0;0,0,0])*cell2mat(n_pn_i_local(i))];
 end
 B_epsilon=blkdiag(B_epsilon_i{:}); 
-E_p=1e6*ones(np,1);     % Young's modulus of panel
-mu=0.5;     %泊松比            
+E_p=2.06e5*ones(np,1);     % Young's modulus of panel
+mu=0.3;     %泊松比            
 % D=zeros(3*np,3*np)
 D=[diag(E_p/(1-mu^2)),diag(mu*E_p/(1-mu^2)),zeros(np,np);diag(mu*E_p/(1-mu^2)),diag(E_p/(1-mu^2)),zeros(np,np);zeros(np,np),zeros(np,np),diag(E_p/2*(1+mu))]; 
 
@@ -203,19 +223,17 @@ pVp_pn=A_2l*(inv(B_epsilon)*C_pl_bar)'*D*kron((diag(A_p)*diag(t_p)),eye(3))*inv(
 t_l=(inv(B_epsilon)*C_pl_bar)'*D*kron((diag(A_p)*diag(t_p)),eye(3))*inv(B_epsilon)*C_pl_bar*Delta_l_l;
 
 
-E_t=1e6*ones(nt,1);    % Young's modulus of truss
+E_t=2.06e11*ones(nt,1);    % Young's modulus of truss
 A_t=1e-6*ones(nt,1);    % area of truss
 
 % l0_t=30*ones(nt,1);
-l0_t=[65;65;65;33;33;33];
-l0_tc=S_tc*l0_t;
-
+l0_t=[0];
+% l0_tc=S_tc*l0_t;
+l0_tc=[0];
 E_tc=pinv(S_tc')*E_t;   % Young's modulus of truss
 A_tc=pinv(S_tc')*A_t;    % area of truss
 
 
-l0=[l0_l;l0_t];
-l0_c=S*l0;
 % Delta_l_t=l_t-l0_t;
 Delta_l_tc=l_tc-l0_tc;
 
@@ -295,7 +313,7 @@ k=diag(D1);
 [k_sort,I]=sort(k);
 K_mode_sort=K_mode(:,I);
 % plot the mode shape of tgent stiffness matrix
-num_plt=1:9;
+num_plt=1:69;
 plot_mode_ori_membrane(K_mode_sort,k_sort,N,Ia,C_b,C_s,C_l,[],[],l,'tangent stiffness matrix',...
     'Order of Eigenvalue','Eigenvalue of Stiffness (N/m)',num_plt,0.1 ,saveimg,3,Ca);
 
@@ -308,19 +326,26 @@ plot_mode_ori_membrane(K_mode_sort,k_sort,N,Ia,C_b,C_s,C_l,[],[],l,'tangent stif
 % d=1;     %damping coefficient
 % D=d*2*max(sqrt(mass.*E.*A./l))*eye(3*nn);    %critical damping
 
-Cd=1e-5*eye(3*nn,3*nn);
+Cd=1e-3*eye(3*nn,3*nn);
 %% mode analysis
 [V_mode,D1] = eig(Kt_aa,Ia'*M*Ia);         % calculate vibration mode
 w_2=diag(D1);                                    % eigen value of 
 omega=real(sqrt(w_2))/2/pi;                   % frequency in Hz
-plot_mode_CTS(V_mode,omega,N,Ia,C,[1,2],S,l,'natrual vibration',...
-    'Order of Vibration Mode','Frequency (Hz)',num_plt,0.1,saveimg);
+% plot_mode_CTS(V_mode,omega,N,Ia,C,[1,2],S,l,'natrual vibration',...
+%     'Order of Vibration Mode','Frequency (Hz)',num_plt,0.1,saveimg);
+plot_mode_ori_membrane(V_mode,omega,N,Ia,C_b,C_s,C_l,[],[],l,'natrual vibration',...
+    'Order of Vibration Mode','Frequency (Hz)',num_plt,0.1 ,saveimg,3,Ca);
+
 
 %% external force, forced motion of nodes, shrink of strings
 % calculate external force and 
 ind_w=[];w=[];   %external force in Z 
-ind_dnb=[]; dnb0=[];
-ind_dl0_tc=[4,5,6]; dl0_tc=[-32,-32,-32];
+if f==3
+ind_dnb=[3,9,15,27,18,24]'; dnb0=[0.6,0.6,0.3,0.3,0.3,0.3]';
+elseif f==5
+ind_dnb=[3,9,36,75,45,66,15,48,54,42,33,69,24,18,51,63,39,30,57,72]'; dnb0=[0.6,0.6,0.45,0.45,0.45,0.45,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.15,0.15,0.15,0.15,0.15,0.15,0.15]';
+end
+ind_dl0_tc=[]; dl0_tc=[];
 ind_dl0_l=[];dl0_l=[];
 % ind_theta_0=[]; dtheta_0=[];        % initial angel change with time
 p=1;  %加载次数
@@ -353,13 +378,20 @@ data_out1=static_solver_CTS_membrane(data);
 % t_t=data_out1.t_out;          %member force in every step
 n_t=data_out1.n_out;          %nodal coordinate in every step
 sigma_l=data_out1.sigma_l_out;    %sigma_l
+sigma_mises=data_out1.sigma_mises_out;  %mises应力 
 t_tc=data_out1.t_tc_out;        %t_tc
 N_out=data_out1.N_out;
 %% plot member force 
 % tenseg_plot_result(1:substep,t_t([1,2,3,5,6],:),{'1','2','3-4','5','6'},{'Load step','Force (N)'},'plot_member_force.png',saveimg);
 % grid on;
+%% plot sigma_mises 
+% tenseg_plot_result(1:substep,sigma_mises([1,2,3,4,5,6,7,8],:),{'1','2','3','4','5','6','7','8'},{'Load step','sigma_mises (Pa)'},'plot_member_force.png',saveimg);
+% grid on;
+%% plot sigma_l
+tenseg_plot_result(1:substep,sigma_l([1,2,3,28,29,30],:),{'膜1-σx','膜1-σy','膜1-τxy','膜10-σx','膜10-σy','膜10-τxy'},{'Substep','sigma (Pa)'},'plot_member_force.png',saveimg);
+grid on;
 %% Plot nodal coordinate curve X Y
-tenseg_plot_result(1:substep,0.5*(n_t([3*3-1],:)-n_t([3*4-1],:)-2),{'3Y'},{'Substep','Coordinate (m)'},'plot_coordinate.png',saveimg);
+tenseg_plot_result(1:substep,n_t([1,2,3,19,20,21],:),{'x1','y1','z1','x7','y7','z7'},{'Substep','Coordinate (m)'},'plot_coordinate.png',saveimg);
 grid on;
 %% Plot configuration
 % for i=round(linspace(1,substep,3))
@@ -373,7 +405,7 @@ grid on;
 for i=1:10
     num=ceil(j(i)*size(n_t,2));
 tenseg_plot_ori_membrane(reshape(n_t(:,num),3,[]),C_b,C_s,C_l,[],[],[],[],[30,30],[] ,[],Ca);
-%  axis off;
+ axis off;
 end
 %% save output data
 if savedata==1
@@ -381,11 +413,11 @@ if savedata==1
 end
 %% make video of the dynamic
 icrm=size(n_t,2); 
-name=['tower_m1'];
+name=['4_nodes_membrane'];
 % tenseg_video(n_t,C_b,C_s,[],min(substep,50),name,savevideo,R3Ddata);
 % tenseg_video_slack(n_t,C_b,C_s,l0_ct,index_s,[],[],[],min(substep,50),name,savevideo,material{2})
 tenseg_video_ori_membrane(n_t,C_b,C_s,C_l,[],[],Ca,[],min(icrm,50),name,savevideo,[])
-
+axis off;
 %% Step 2: dynamics:change rest length of strings
 % time step 
 if auto_dt
@@ -395,9 +427,15 @@ tspan=0:dt:tf;
 tspan1=0:dt:tf/2;
 out_tspan=interp1(tspan,tspan,0:out_dt:tf, 'nearest','extrap');  % output data time span
 
+ pinned_X=[1,2,3,4]'; pinned_Y=[1,2,3,4]'; pinned_Z=[1,2,3,4]'; %固定新的节点
+
+[Ia,Ib,a,b]=tenseg_boundary(pinned_X,pinned_Y,pinned_Z,nn);  %重新给定Ia和Ib
+
+N=cell2mat(N_out(20));  %以静力学变形后的图像当动力学的初始模型
+
 % calculate external force and 
-ind_w=[];w=[];
-ind_dl0_tc=[4,5,6]; dl0_tc=[-32,-32,-32];
+ind_w=[21];w=[0.01];
+ind_dl0_tc=[]; dl0_tc=[];
 ind_dl0_l=[];dl0_l=[];
 
 
@@ -442,12 +480,11 @@ nd_t=data_out.nd_t;   %time history of nodal coordinate
 for i=1:10
     num=ceil(j(i)*size(n_t,2));
 tenseg_plot_ori_membrane(reshape(n_t(:,num),3,[]),C_b,C_s,C_l,[],[],[],[],[30,30],[] ,[],Ca);
-%  axis off;
+ axis off;
 end
-
 %% make video of the dynamic
 icrm=size(n_t,2); 
-name=['tower_m1_dynamic'];
+name=['4_nodes_membrane_dynamic_1'];
 % tenseg_video(n_t,C_b,C_s,[],min(substep,50),name,savevideo,R3Ddata);
 % tenseg_video_slack(n_t,C_b,C_s,l0_ct,index_s,[],[],[],min(substep,50),name,savevideo,material{2})
 tenseg_video_ori_membrane(n_t,C_b,C_s,C_l,[],[],Ca,[],min(icrm,50),name,savevideo,[])
@@ -455,14 +492,19 @@ tenseg_video_ori_membrane(n_t,C_b,C_s,C_l,[],[],Ca,[],min(icrm,50),name,savevide
 %% plot member force 
 % tenseg_plot_result(out_tspan,t_t([10],:),{'string'},{'Time (s)','Force (N)'},'plot_member_force.png',saveimg);
 % grid on;
- tenseg_plot_result(downsample(out_tspan,30),downsample(t_t([10],:),30),{'string'},{'Time (s)','Force (N)'},'plot_member_force.png',saveimg);
-grid on;
+%  tenseg_plot_result(downsample(out_tspan,30),downsample(t_t([10],:),30),{'string'},{'Time (s)','Force (N)'},'plot_member_force.png',saveimg);
+% grid on;
+
 %% Plot nodal coordinate curve X Y
-tenseg_plot_result(out_tspan,n_t([13,14,15],:),{'x5','y5','z5'},{'Time (s)','Coordinate (m)'},'plot_coordinate.png',saveimg);
+tenseg_plot_result(out_tspan,n_t([19,20,21],:),{'x7','y7','z7'},{'Time (s)','Coordinate (m)'},'plot_coordinate.png',saveimg);
 grid on;
 
-tenseg_plot_result(downsample(out_tspan,30),[downsample(n_t([13],:),30);downsample(n_t([14],:),30);downsample(n_t([15],:),30)],{'x6','y6','z6','x8','y8','z8'},{'Time (s)','Coordinate (m)'},'plot_coordinate.png',saveimg);
+
+tenseg_plot_result(out_tspan,sigma_l_t([1,2,3,28,29,30],:),{'膜1-σx','膜1-σy','膜1-τxy','膜10-σx','膜10-σy','膜10-τxy'},{'Time (s)','sigma (Pa)'},'plot_coordinate.png',saveimg);
 grid on;
+
+% tenseg_plot_result(downsample(out_tspan,30),[downsample(n_t([19],:),30);downsample(n_t([20],:),30);downsample(n_t([21],:),30)],{'x7','y7','z7'},{'Time (s)','Coordinate (m)'},'plot_coordinate.png',saveimg);
+% grid on;
 %% Plot final configuration
 % tenseg_plot_catenary( reshape(n_t(:,end),3,[]),C_b,C_s,[],[],[0,0],[],[],l0_ct(index_s,end))
 tenseg_plot( reshape(n_t(:,end),3,[]),C_b,C_s,[],[],[0,90])

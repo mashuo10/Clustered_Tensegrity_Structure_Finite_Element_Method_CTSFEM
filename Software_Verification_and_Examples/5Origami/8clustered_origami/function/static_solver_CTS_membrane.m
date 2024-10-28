@@ -122,6 +122,13 @@ for k=1:substep
         A_2l=kron(C_l',eye(3))*blkdiag(Cell_H_l{:})*diag(l_l.^-1);
         
         sigma_l=D/(B_epsilon)*C_pl_bar*Delta_l_l;
+        
+
+        sigma_x=sigma_l(1:3:end,:);
+        sigma_y=sigma_l(2:3:end,:);
+        tau_xy=sigma_l(3:3:end,:);
+        
+        sigma_mises=sqrt(diag(sigma_x*sigma_x')+diag(sigma_y*sigma_y')-diag(sigma_x*sigma_y')+3*diag(tau_xy*tau_xy'));  %mises应力
 
         t_tc=diag(E_tc)*diag(A_tc)*diag(l0_tc.^-1)*Delta_l_tc;
         t_l=(inv(B_epsilon)*C_pl_bar)'*D*kron((diag(A_p)*diag(t_p)),eye(3))*inv(B_epsilon)*C_pl_bar*Delta_l_l;
@@ -235,6 +242,7 @@ K_taa=Ia'*K_t*Ia;
     %     data_out.q_out(:,k)=q;
     %     data_out.E_out(:,k)=E;
     data_out.sigma_l_out(:,k)=sigma_l;     %sigma_l
+    data_out.sigma_mises_out(:,k)=sigma_mises;     %mises应力
     data_out.t_tc_out(:,k)=t_tc;      %member force
     % data_out.V{k}=energy_cal(data_out);
     data_out.Fpn_out(k)=norm(Ia'*Fp);

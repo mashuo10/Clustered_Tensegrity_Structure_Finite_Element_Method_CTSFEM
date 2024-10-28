@@ -26,8 +26,8 @@ c_b=0.1;           % coefficient of safty of bars 0.5
 c_s=0.1;           % coefficient of safty of strings 0.3
 
 % static analysis set
-substep_1=10;
-substep=10;                                     %荷载子步
+substep_1=20;
+substep=20;                                     %荷载子步
 lumped=0;               % use lumped matrix 1-yes,0-no
 saveimg=0;              % save image or not (1) yes (0)no
 savedata=0;             % save data or not (1) yes (0)no
@@ -55,7 +55,7 @@ R=[cos(alpha)*cos(beta),cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma),co
 P_org=[0;0;0];  %局部坐标到整体坐标的距离
 width=0.1;
 
-r=2/3; h=30; p=3; f=3;       % radius; height; number of edge;三角形边长划分数量
+r=2/3; h=30; p=3; f=5;       % radius; height; number of edge;三角形边长划分数量
 
 beta=180*(0.5-1/p); 	% rotation angle
 for i=1:p               % nodal coordinate matrix N
@@ -137,7 +137,7 @@ Ca(Ca==-2)=(1+f)*f/2;
 
 % plot the origami configuration
 tenseg_plot_ori_membrane(N,C_b,C_s,C_l,[],[],[],[],[],[],[],Ca);
-% axis off;
+axis off;
 %% Boundary constraints
  pinned_X=[]'; pinned_Y=[]'; pinned_Z=[1,2,3]';
 [Ia,Ib,a,b]=tenseg_boundary(pinned_X,pinned_Y,pinned_Z,nn);
@@ -335,8 +335,11 @@ Cd=1e-5*eye(3*nn,3*nn);
 %% external force, forced motion of nodes, shrink of strings
 % calculate external force and 
 ind_w=[];w=[];   %external force in Z 
-ind_dnb=[1]'; dnb0=[0.1]';
-% ind_dnb=[1,2,3]'; dnb0=[0.01,0.01,-0.03]';
+
+% ind_dnb=[1]'; dnb0=[0.1]';
+% ind_dnb=[1,10,16]'; dnb0=[0.2,0.1,0.1]';
+ind_dnb=[1,31,43,10,13,16,19,22,25,28]'; dnb0=[0.4,0.3,0.3,0.2,0.2,0.2,0.1,0.1,0.1,0.1]';
+
 ind_dl0_tc=[]; dl0_tc=[];
 ind_dl0_l=[];dl0_l=[];
 % ind_theta_0=[]; dtheta_0=[];        % initial angel change with time
@@ -344,9 +347,11 @@ p=1;  %加载次数
 substep = substep*p;
 % [w_t,dnb_t,l0_ct,Ia_new,Ib_new]=tenseg_load_prestress(substep,ind_w,w,ind_dnb,dnb0,ind_dl0_c,dl0_c,l0_c,b,gravity,[0;9.8;0],C,mass);
 [w_t,dnb_t,l0_tc_t,l0_l_t,Ia,Ib]=tenseg_load_prestress_membrane_time(substep,ind_w,w,ind_dnb,dnb0,ind_dl0_tc,dl0_tc,l0_tc,ind_dl0_l,dl0_l,l0_l,b,gravity,[0;0;9.8],C,M_p);
+   
+%     ind_du=[1]; du=[0.1];
+%     ind_du=[1,10,16]; du=[0.2,0.1,0.1];
+     ind_du=[1,31,43,10,13,16,19,22,25,28]; du=[0.4,0.3,0.3,0.2,0.2,0.2,0.1,0.1,0.1,0.1];
 
-    ind_du=[1]; du=[0.1];
-%     ind_du=[1,2,3]; du=[0.01,0.01,-0.03];
 
     U=zeros(size(N(:))); 
     du_it=zeros(size(U));
@@ -391,12 +396,14 @@ T1_t=data_out1.T1_out;
 
 time_a=data_out1.time_a;
 time_b=data_out1.time_b;
-
+difference=data_out1.difference;
 A=cumsum(time_a);
 B=cumsum(time_b);
 
 
 tenseg_plot_result(1:substep,[A;B],{'传统方法','创新方法'},{'Substep','time(s)'},'plot_member_force.png',saveimg);
+grid on;
+tenseg_plot_result(1:substep,difference([1],:),{'误差'},{'Substep','error(%)'},'plot_member_force.png',saveimg);
 grid on;
 
 %% plot member force 

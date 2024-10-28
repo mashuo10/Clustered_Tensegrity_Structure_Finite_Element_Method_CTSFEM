@@ -75,12 +75,12 @@ for i = 2:N
     F(:,1) = feval(odefun,ti,yi,data_in);
     if  sum(out_tspan==ti)
         disp(ti);
-        data_out.t_tc_t(:,out_tspan==ti)=t_tc;      %member force
+%         data_out.t_tc_t(:,out_tspan==ti)=t_tc;      %member force
         data_out.sigma_l_t(:,out_tspan==ti)=sigma_l;
         data_out.n_t(:,out_tspan==ti)=n;
-        data_out.l_tc_t(:,out_tspan==ti)=l_tc; 
+%         data_out.l_tc_t(:,out_tspan==ti)=l_tc; 
         data_out.l_l_t(:,out_tspan==ti)=l_l;
-        data_out.l0_tc_t(:,out_tspan==ti)=l0_tc;
+%         data_out.l0_tc_t(:,out_tspan==ti)=l0_tc;
         data_out.l0_l_t(:,out_tspan==ti)=l0_l;
         data_out.nd_t(:,out_tspan==ti)=n_d; 
 %         data_out.stress_t(:,out_tspan==ti)=stress; 
@@ -111,12 +111,12 @@ end
 %   end
 if  sum(out_tspan==tspan(end))
     disp(ti);
-    data_out.t_tc_t(:,out_tspan==tspan(end))=t_tc;      %member force
+%     data_out.t_tc_t(:,out_tspan==tspan(end))=t_tc;      %member force
     data_out.sigma_l_t(:,out_tspan==tspan(end))=sigma_l;      
     data_out.n_t(:,out_tspan==tspan(end))=n;
-    data_out.l_tc_t(:,out_tspan==tspan(end))=l_tc;  
+%     data_out.l_tc_t(:,out_tspan==tspan(end))=l_tc;  
     data_out.l_l_t(:,out_tspan==tspan(end))=l_l;
-    data_out.l0_tc_t(:,out_tspan==tspan(end))=l0_tc;
+%     data_out.l0_tc_t(:,out_tspan==tspan(end))=l0_tc;
     data_out.l0_l_t(:,out_tspan==tspan(end))=l0_l;
 %     data_out.stress_t(:,out_tspan==tspan(end))=stress;
 %     data_out.strain_t(:,out_tspan==tspan(end))=strain;
