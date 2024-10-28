@@ -1,4 +1,4 @@
-function [fig_out] = tenseg_plot_CTS( N,C,index_b,S,fig_handle,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_nod,bound)
+function [fig_out] = tenseg_plot_CTS_membrane_color( N,C,index_b,S,C_l,C_h,C_rh,Ca,fig_handle,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_plate,lb_nod,bound)
 % [fig_out] = TENSEG_PLOT( N,C_b,C_s,fig_handle,highlight_nodes,view_vec )
 % creates a rough visualization figure for a given tensegrity structure
 % with bar and string color represting member information(like force)

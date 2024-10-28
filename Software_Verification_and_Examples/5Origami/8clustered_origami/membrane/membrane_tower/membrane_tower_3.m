@@ -376,6 +376,12 @@ tenseg_plot_result(1:substep,n_t([10,11,12,22,23,24],:),{'x4','y4','z4','x8','y8
 grid on;
 %% plot hinge moment
 tenseg_plot_result(1:substep,sigma_l([1,2,3],:),{'膜1-σx','膜1-σy','膜1-τxy'},{'Substep','sigma (pa)'},'plot_hinge_moment.png',saveimg);
+%% plot CTS membrane with color
+index_b=find(t_tc(:,end)<0);              % index of bar in compression
+tenseg_plot_CTS_membrane_color( N,C,index_b,S_tc,C_l,[],[],Ca,[],[],[],[],[],t_tc,sigma_l(1:3:end,:),[],[min([t_tc;sigma_l(1:3:end,:)]),max([t_tc;sigma_l(1:3:end,:)])])
+% % plot the origami configuration
+% tenseg_plot_ori_membrane(N,C_b,C_s,C_l,[],[],[],[],[],[],[],Ca);
+
 
 %% Plot configuration
 % for i=round(linspace(1,substep,3))
