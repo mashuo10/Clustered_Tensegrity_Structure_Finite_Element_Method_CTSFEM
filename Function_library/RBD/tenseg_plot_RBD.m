@@ -222,7 +222,7 @@ end
 % Highlight specified nodes if applicable
 for j=1:numel(highlight_nodes)
     node_index = highlight_nodes(j);
-    plot3(N(1,node_index),N(2,node_index),N(3,node_index),'rd','MarkerSize',8,'MarkerFaceColor','red')
+    plot3(N(1,node_index),N(2,node_index),N(3,node_index),'gs','MarkerSize',8,'MarkerFaceColor','g')
 end
 %% Plot rigid body using 'patch'
 num_rbd=numel(n_qp);
