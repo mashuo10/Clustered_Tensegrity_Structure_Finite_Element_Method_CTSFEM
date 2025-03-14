@@ -180,6 +180,27 @@ if ~isempty(C_s)
             hold on
         end
     else % Normal line plot
+%         if 1
+%                 string_start_nodes = zeros(3,size(S,2)-80);
+%     string_end_nodes = zeros(3,size(S,2)-80);
+%     for j = 1:size(S,2)-80
+%         string_start_nodes(:,j) = N(:,C_s(j,:)==-1);
+%         string_end_nodes(:,j) = N(:,C_s(j,:)==1);
+%     end
+%         quiver3(string_start_nodes(1,:),string_start_nodes(2,:),string_start_nodes(3,:),S(1,:),S(2,:),S(3,:),'red.','Autoscale','off','LineWidth',StringWidth);
+%         hold on
+%             string_start_nodes = zeros(3,80);
+%     string_end_nodes = zeros(3,80);
+% for j = 1:80
+%         string_start_nodes(:,j) = N(:,C_s(size(S,2)-80+j,:)==-1);
+%         string_end_nodes(:,j) = N(:,C_s(size(S,2)-80+j,:)==1);
+%     end
+%         quiver3(string_start_nodes(1,:),string_start_nodes(2,:),string_start_nodes(3,:),S(1,:),S(2,:),S(3,:),'green.','Autoscale','off','LineWidth',StringWidth);
+%         hold on
+% 
+% end
+%        
+
         quiver3(string_start_nodes(1,:),string_start_nodes(2,:),string_start_nodes(3,:),S(1,:),S(2,:),S(3,:),'red.','Autoscale','off','LineWidth',StringWidth);
         hold on
     end

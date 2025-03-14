@@ -38,11 +38,9 @@ if savevideo==1
         else
         lb_nod=lb_nod_t(:,p);
         end
-        %         tenseg_plot(N,C_b,C_s,99,[],[],[],R3Ddata);hold on
-        %         delete_index = [7,13];
-        %         [N,C_b,C_s] = tenseg_delete_extra_nodes(delete_index,N,C_b,C_s);
-%         tenseg_plot_CTS(N,C_b,C_s,99,[],[],[],R3Ddata);hold on
-        tenseg_plot_CTS(N,C,index_b,S,99,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_nod,[min(lb_ele_t),max(lb_ele_t)]);
+
+%         tenseg_plot_CTS(N,C,index_b,S,99,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_nod,[min(lb_ele_t),max(lb_ele_t)]);
+tenseg_plot_CTS2(N,C,index_b,S,99,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_nod,[min(lb_ele_t),max(lb_ele_t)]);
         set(gcf,'color','w');
         axis(axislim);
         tenseg_savegif_forever_CTS(name,time/num_pic);

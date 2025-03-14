@@ -1,4 +1,4 @@
-function [fig_out] = tenseg_plot_CTS( N,C,index_b,S,fig_handle,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_nod,bound)
+function [fig_out] = tenseg_plot_CTS2( N,C,index_b,S,fig_handle,highlight_nodes,view_vec, PlotTitle, R3Ddata,lb_ele,lb_nod,bound)
 % [fig_out] = TENSEG_PLOT( N,C_b,C_s,fig_handle,highlight_nodes,view_vec )
 % creates a rough visualization figure for a given tensegrity structure
 % with bar and string color represting member information(like force)
@@ -27,11 +27,11 @@ function [fig_out] = tenseg_plot_CTS( N,C,index_b,S,fig_handle,highlight_nodes,v
 %	tenseg_plot(N,C_b,C_b)
 
 % Handle optional arguments
-
+usepatch=0;
 %% Object size options (for line plots)
 BarWidth = 3; % Width of bar lines
 StringWidth = 1.5; % Width of string lines
-NodeSize = 12; % Size of node marker
+NodeSize = 5; % Size of node marker
 
 %% Labeling options
 % Write labels? (1: show, 0: suppress)
@@ -121,7 +121,7 @@ dist_x = FractionDistance * diff_x;
 dist_y = FractionDistance * diff_y;
 dist_z = FractionDistance * diff_z;
 %%
-if isempty(lb_ele)|isempty(lb_nod)
+if isempty(lb_ele)&isempty(lb_nod)
     Color_CTS=1;   % 1 color by clustered info, 0 color by lb_ele
 Label_colorbar=0;  % 1 colorbar, 2 legned, 0 nothing,
 end
@@ -132,7 +132,7 @@ else
     fig_out = figure(fig_handle);
 end
 
-
+if (isempty(lb_ele)&isempty(lb_nod))|usepatch==0
 %% cluster information & color
 index_s=setdiff(1:size(C,1),index_b);
 C_b=C(index_b,:);
@@ -204,6 +204,9 @@ end
 %     end
 % 
 % end
+
+
+
 
 
 %% plot bars
@@ -358,8 +361,29 @@ if LabelNodes == 1
             num2str(i), 'FontSize', FontNodes, 'Color', 'b')
     end
 end
+%% use patch to plot bar and string
+else        % use patch to plot
+X=zeros(2,ne);          % For .x coordinator
+Y=zeros(2,ne);          % For Y coordinate.
+Z=zeros(2,ne);          % For Z coordinate
+c=zeros(2,ne);          % for color
+X=[(N(1,:)*C_sta');(N(1,:)*C_end')];
+Y=[(N(2,:)*C_sta');(N(2,:)*C_end')];
+Z=[(N(3,:)*C_sta');(N(3,:)*C_end')];
+
+if ~isempty(lb_ele)
+c=kron([1;1],lb_ele');
+
+elseif ~isempty(lb_nod)
+c=[(lb_nod'*C_sta');(lb_nod'*C_end')];
+end
+patch(X,Y,Z,c,'EdgeColor','interp','Marker','.','MarkerFaceColor','flat','linewidth',StringWidth);
+hold on;
 
 
+colorbar;
+colormap jet;
+end
 
 % Highlight specified nodes if applicable
 for j=1:numel(highlight_nodes)

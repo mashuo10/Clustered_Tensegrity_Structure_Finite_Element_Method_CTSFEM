@@ -1,9 +1,9 @@
-function data_out=static_solver_CTS(data)
+function data_out=DR_solver_CTS(data)
 %solve nonlinear equilibrium equations using modified Newton method
 %converge to stable equilibrium, considering substep, for CTS( including
 %TTS)
 
-global E A l0 Ia Ib C S w ne Xb Xa dXa f_int l_int
+global E A l0 Ia Ib C S w ne nb na dXa f_int l_int
 % minimize total energy? (1: use, 0: not use) it's time consuming
 use_energy=1;
 
@@ -34,12 +34,12 @@ end
 % dXb=data.dXb;
 if  isfield(data,'dnb_t')
     if size(data.dnb_t,2)==substep
-        dXb_t=data.dnb_t;
+        dnb_t=data.dnb_t;
     elseif size(data.dnb_t,2)==1
-        dXb_t=data.dnb_t*linspace(0,1,substep);
+        dnb_t=data.dnb_t*linspace(0,1,substep);
     end
 else
-    dXb_t=linspace(0,0,substep);
+    dnb_t=linspace(0,0,substep);
 end
 % l0_0=data.l0;
 if size(data.l0_t,2)==substep
@@ -54,29 +54,80 @@ else
     subsubstep=30;          %default ssubstep
 end
 
-X0=data.N(:);
+n0=data.N(:);
 data_out=data;     %initialize output data
 data_out.E_out=E0*ones(1,substep);
+%% Dynamics relaxation method 
+global l l_c f f_c n f_int l_int n_d stress strain  l0_c
+
+Ia=data.Ia;
+n0=data.N(:);
+tspan=data.tspan;
+n0a_d=data.n0a_d;    %initial speed of free coordinates
+M=data.M;
+
+%% dynamic iteration
+
+% initial value
+n0a=Ia'*n0;
+% n0a_d=zeros(size(n0a));
+Y0a=[n0a;n0a_d];
 
 
-%% calculate equilibrium
-X=X0;               %initialize configuration
-Xb0=Ib'*X;           %pinned node
+neq = length(Y0a);
+num_tspan = length(tspan);
+Y = zeros(neq,num_tspan);
+F = zeros(neq,4);
+
+
+odefun=@tenseg_dyn_x_xdot_CTS;
+Y(:,1) = Y0a;
+Ene=zeros(num_tspan,1);         % energy in each step
+h = diff(tspan);
+num_spd0=0;
+for i = 2:num_tspan
+    ti = tspan(i-1);
+    
+    hi = h(i-1);
+    yi = Y(:,i-1);
+    F(:,1) = feval(odefun,ti,yi,data);
+    Ene(i-1)=n_d'*M*n_d;
+    F(:,2) = feval(odefun,ti+0.5*hi,yi+0.5*hi*F(:,1),data);
+    F(:,3) = feval(odefun,ti+0.5*hi,yi+0.5*hi*F(:,2),data);
+    F(:,4) = feval(odefun,tspan(i),yi+hi*F(:,3),data);
+    Y(:,i) = yi + (hi/6)*(F(:,1) + 2*F(:,2) + 2*F(:,3) + F(:,4));
+    if  i>2
+        if Ene(i-1)<Ene(i-2)&&Ene(i-1)~=0
+        Y(neq/2+1:neq,i)=zeros(neq/2,1);        %set speed equal to zero
+        num_spd0=num_spd0+1;
+        end
+    end
+    if num_spd0==3
+        break;
+    end
+end
+
+na_end=Y(1:neq/2,i-1);
+
+
+%% Statics equilibrium solver
+
+nb0=Ib'*n0;           %pinned node
 E=E0;
 % lamda=linspace(0,1,substep);    %coefficient for substep
 num_slack=ne*zeros(substep+1,1);    %num of string slack
-Xa=Ia'*X;
+na=na_end;
 cont=2;
  u=1e-1;
 for k=1:substep
     w=w_t(:,k);               %external force
-    Xb=Xb0+dXb_t(:,k);         %forced node displacement
+    nb=nb0+dnb_t(:,k);         %forced node displacement
     l0=l0_t(:,k);         %forced enlongation of string
     disp(k);
    
     
-    X=[Ia';Ib']\[Xa;Xb];
-    l=sqrt(sum((reshape(X,3,[])*C').^2))'; %bar length
+    n=[Ia';Ib']\[na;nb];
+    l=sqrt(sum((reshape(n,3,[])*C').^2))'; %bar length
     l_c=S*l;
     strain=(l_c-l0)./l0;        %strain of member
     [E,sigma]=stress_strain(consti_data,index_b,index_s,strain,material);
@@ -88,8 +139,8 @@ for k=1:substep
     l_int=l;   f_int=t;
     
     for i=1:1e3
-        X=[Ia';Ib']\[Xa;Xb];
-        l=sqrt(sum((reshape(X,3,[])*C').^2))'; %bar length
+        n=[Ia';Ib']\[na;nb];
+        l=sqrt(sum((reshape(n,3,[])*C').^2))'; %bar length
         l_c=S*l;
         %         q=E.*A.*(1./l0-1./l);      %force density
         strain=(l_c-l0)./l0;        %strain of member
@@ -102,14 +153,14 @@ for k=1:substep
         q_bar=diag(q);
         
         K=kron(C'*q_bar*C,eye(3));                      %stiffness matrix
-        Fp=w-K*X;                                       %unbalanced force
+        Fp=w-K*n;                                       %unbalanced force
         Fp_a=Ia'*Fp;                                 %see the norm of unbalanced force
         F_norm=norm(Fp_a);
         disp(F_norm)
-        if norm(Fp_a)<1e-3
+        if norm(Fp_a)<1e-5
             break
         end
-        N=reshape(X,3,[]);
+        N=reshape(n,3,[]);
         H=N*C';
        Cell_H=mat2cell(H,3,ones(1,size(H,2)));          % transfer matrix H into a cell: Cell_H
 
@@ -122,11 +173,11 @@ K_taa=Kg_aa+(Ke_aa+Ke_aa')/2;       % this is to
 
         if 1            % modify stiffness matrix or not
         %modify the stiffness matrix
-        [V_mode,D]=eig(K_taa);                       %¸Õ¶È¾ØÕóÌØÕ÷¸ù
+        [V_mode,D]=eig(K_taa);                       %åˆšåº¦çŸ©é˜µç‰¹å¾æ ¹
         d=diag(D);                            %eigen value
-        lmd=min(d);                     %¸Õ¶È¾ØÕó×îĞ¡ÌØÕ÷¸ù
+        lmd=min(d);                     %åˆšåº¦çŸ©é˜µæœ€å°ç‰¹å¾æ ¹
         if lmd>0
-            Km=K_taa+u*eye(size(K_taa)); %ĞŞÕıµÄ¸Õ¶È¾ØÕó
+            Km=K_taa+u*eye(size(K_taa)); %ä¿®æ­£çš„åˆšåº¦çŸ©é˜µ
         else
             Km=K_taa+(abs(lmd)+u)*eye(size(K_taa));
         end
@@ -137,11 +188,11 @@ K_taa=Kg_aa+(Ke_aa+Ke_aa')/2;       % this is to
 %          dXa=(lmd*eye(size(Km)))\Fp_a;
         x=1;
         % line search
-        if (use_energy==1)&(F_norm>1e3)           
+        if (use_energy==1)&(F_norm>1e4)           
             opt=optimset('TolX',1e-5);
             [x,V]=fminbnd(@energy_CTS,0,1e1,opt);
         end
-        Xa=Xa+x*dXa;
+        na=na+x*dXa;
     end
     %
     %     % change youngs mudulus if string slack
@@ -198,8 +249,8 @@ K_taa=Kg_aa+(Ke_aa+Ke_aa')/2;       % this is to
     
     %% output data
     
-    data_out.N_out{k}=reshape(X,3,[]);
-    data_out.n_out(:,k)=X;
+    data_out.N_out{k}=reshape(n,3,[]);
+    data_out.n_out(:,k)=n;
     %     data_out.l_out(:,k)=l;
     %     data_out.q_out(:,k)=q;
     %     data_out.E_out(:,k)=E;
@@ -208,7 +259,7 @@ K_taa=Kg_aa+(Ke_aa+Ke_aa')/2;       % this is to
     data_out.Fpn_out(k)=norm(Ia'*Fp);
 end
 data_out.E=E;
-data_out.N=reshape(X,3,[]);
+data_out.N=reshape(n,3,[]);
 
 
 
