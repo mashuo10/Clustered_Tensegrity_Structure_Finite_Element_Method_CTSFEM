@@ -94,7 +94,7 @@ w0=zeros(numel(N),1); w0a=Ia'*w0;
 %prestress design
 index_gp=[161]; % number of groups with designed force
 
-fd=[300e4];                       % force in bar is given as -1000
+fd=[300e4];                       % force in string in 1st circular group
 
 % [q_gp,t_c,q,t]=tenseg_prestress_design(Gp,l,l_gp,A_1ag,V1(:,end),w0a,index_gp,fd);    %prestress design
 [t_c,t]=tenseg_prestress_design2(Gp,l,l_gp,A_2ag,V2,w0a,index_gp,fd);    %prestress design

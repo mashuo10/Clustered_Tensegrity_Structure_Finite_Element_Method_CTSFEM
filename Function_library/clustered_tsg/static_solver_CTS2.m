@@ -1,4 +1,4 @@
-function data_out=static_solver_CTS(data)
+function data_out=static_solver_CTS2(data)
 %solve nonlinear equilibrium equations using modified Newton method
 %converge to stable equilibrium, considering substep, for CTS( including
 %TTS)
